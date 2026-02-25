@@ -1,0 +1,90 @@
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f0f0;
+  padding: 16px;
+}
+
+.auth-card {
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  padding: 32px;
+  width: 100%;
+  max-width: 380px;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.auth-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  background: #333;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.auth-header h1 {
+  font-size: 1.15rem;
+  margin-bottom: 4px;
+}
+
+.auth-header p {
+  color: #888;
+  font-size: 12px;
+}
+
+.auth-card .form-group {
+  margin-bottom: 14px;
+}
+
+.auth-card label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: #444;
+  margin-bottom: 3px;
+}
+
+.auth-card input {
+  height: 36px;
+  padding: 6px 10px;
+}
+
+.auth-card input.input-error {
+  border-color: #999;
+}
+
+.auth-card input.input-error:focus {
+  border-color: #666;
+}
+
+.field-error {
+  display: block;
+  color: #666;
+  font-size: 11px;
+  margin-top: 3px;
+}
+
+.auth-link {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 12px;
+  color: #888;
+}
+
+.auth-link a {
+  font-weight: 600;
+  color: #333;
+}
