@@ -4,7 +4,8 @@ A full-featured task management application with user authentication, task CRUD,
 
 ## Tech Stack
 
-- **Backend**: Python 3.11+ / FastAPI / SQLAlchemy 2.0 / PostgreSQL
+- **Backend**: Python 3.11+ / FastAPI / SQLAlchemy 2.0
+- **Database**: PostgreSQL on [Supabase](https://supabase.com)
 - **Frontend**: React / TypeScript / Vite
 - **Auth**: JWT (python-jose + passlib/bcrypt)
 - **Charts**: Recharts
@@ -40,17 +41,21 @@ task-management-system/
 
 - Python 3.11+
 - Node.js 18+
-- PostgreSQL 14+
+- A [Supabase](https://supabase.com) account (free tier works)
 
 ## Setup
 
-### Database
+### Database (Supabase)
 
-Create a PostgreSQL database:
+1. Create a new project on [Supabase](https://supabase.com).
+2. Go to **Project Settings → Database → Connection string → URI** and copy the connection string.
+3. The connection string will look like:
+   ```
+   postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:5432/postgres
+   ```
+4. You'll paste this into `backend/.env` in the next step (with the `postgresql+asyncpg://` driver prefix).
 
-```bash
-createdb taskmanager
-```
+> **Note:** If your database password contains special characters (e.g. `@`, `#`, `/`), URL-encode them (`@` → `%40`, `#` → `%23`, etc.).
 
 ### Backend
 
@@ -64,7 +69,8 @@ pip install -r requirements.txt
 
 # Copy and configure environment variables
 cp .env.example .env
-# Edit .env with your database credentials
+# Edit .env — set DATABASE_URL to your Supabase connection string:
+# DATABASE_URL=postgresql+asyncpg://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:5432/postgres
 
 # Run database migrations
 alembic upgrade head
@@ -96,7 +102,7 @@ The frontend will be available at `http://localhost:5173`.
 
 | Variable | Description | Default |
 |---|---|---|
-| `DATABASE_URL` | PostgreSQL connection string (asyncpg) | `postgresql+asyncpg://postgres:postgres@localhost:5432/taskmanager` |
+| `DATABASE_URL` | Supabase PostgreSQL connection string (asyncpg driver) | `postgresql+asyncpg://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:5432/postgres` |
 | `SECRET_KEY` | JWT signing key | `dev-secret-key-change-in-production` |
 | `ALGORITHM` | JWT algorithm | `HS256` |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | Access token TTL | `30` |
