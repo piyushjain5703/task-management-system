@@ -1,26 +1,39 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useToast } from '../hooks/useToast';
 import type { ApiError } from '../types';
 import type { AxiosError } from 'axios';
 
 export default function Register() {
   const { register } = useAuth();
+  const { addToast } = useToast();
   const navigate = useNavigate();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const clearError = (field: string) => {
+    if (fieldErrors[field]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
 
   const validate = (): boolean => {
     const errors: Record<string, string> = {};
 
     if (!name.trim()) errors.name = 'Name is required';
+    else if (name.trim().length > 100) errors.name = 'Name must be 100 characters or less';
     if (!email.trim()) errors.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(email)) errors.email = 'Enter a valid email address';
     if (!password) errors.password = 'Password is required';
     else if (password.length < 6) errors.password = 'Password must be at least 6 characters';
     if (password !== confirmPassword) errors.confirmPassword = 'Passwords do not match';
@@ -31,17 +44,18 @@ export default function Register() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
 
     if (!validate()) return;
 
     setIsSubmitting(true);
     try {
       await register(name.trim(), email.trim(), password);
+      addToast('Account created successfully!', 'success');
       navigate('/dashboard', { replace: true });
     } catch (err) {
       const axiosError = err as AxiosError<ApiError>;
-      setError(axiosError.response?.data?.error?.message || 'Registration failed. Please try again.');
+      const message = axiosError.response?.data?.error?.message || 'Registration failed. Please try again.';
+      addToast(message, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -55,7 +69,6 @@ export default function Register() {
           <h1>Create Account</h1>
           <p>Get started with your task management journey</p>
         </div>
-        {error && <div className="alert alert-error">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="name">Full Name</label>
@@ -64,7 +77,7 @@ export default function Register() {
               id="name"
               placeholder="John Doe"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => { setName(e.target.value); clearError('name'); }}
               disabled={isSubmitting}
               className={fieldErrors.name ? 'input-error' : ''}
               autoComplete="name"
@@ -78,7 +91,7 @@ export default function Register() {
               id="email"
               placeholder="you@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => { setEmail(e.target.value); clearError('email'); }}
               disabled={isSubmitting}
               className={fieldErrors.email ? 'input-error' : ''}
               autoComplete="email"
@@ -92,7 +105,7 @@ export default function Register() {
               id="password"
               placeholder="Create a password (min 6 chars)"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => { setPassword(e.target.value); clearError('password'); }}
               disabled={isSubmitting}
               className={fieldErrors.password ? 'input-error' : ''}
               autoComplete="new-password"
@@ -106,7 +119,7 @@ export default function Register() {
               id="confirmPassword"
               placeholder="Confirm your password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={(e) => { setConfirmPassword(e.target.value); clearError('confirmPassword'); }}
               disabled={isSubmitting}
               className={fieldErrors.confirmPassword ? 'input-error' : ''}
               autoComplete="new-password"

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { analyticsService, type PerformanceData, type TrendData } from '../services/analytics.service';
+import { useToast } from '../hooks/useToast';
 
 const RANGE_OPTIONS = [
   { label: '7 days', value: 7 },
@@ -10,6 +11,7 @@ const RANGE_OPTIONS = [
 ];
 
 export default function Analytics() {
+  const { addToast } = useToast();
   const [performance, setPerformance] = useState<PerformanceData[]>([]);
   const [trends, setTrends] = useState<TrendData[]>([]);
   const [days, setDays] = useState(30);
@@ -50,8 +52,9 @@ export default function Analytics() {
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
+      addToast('CSV exported successfully', 'success');
     } catch {
-      setError('Failed to export CSV');
+      addToast('Failed to export CSV', 'error');
     } finally {
       setExporting(false);
     }
@@ -213,6 +216,7 @@ export default function Analytics() {
           </div>
         ) : (
           <div className="empty-state">
+            <div className="empty-state-icon">📈</div>
             <h3>No performance data yet</h3>
             <p>Complete some assigned tasks to see performance metrics.</p>
           </div>

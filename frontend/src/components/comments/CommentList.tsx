@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { commentService } from '../../services/comment.service';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../hooks/useToast';
 import CommentForm from './CommentForm';
 import ConfirmDialog from '../common/ConfirmDialog';
 import type { Comment } from '../../types';
@@ -26,25 +27,24 @@ function timeAgo(dateStr: string): string {
 
 export default function CommentList({ taskId }: CommentListProps) {
   const { user: currentUser } = useAuth();
+  const { addToast } = useToast();
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchComments = useCallback(async () => {
     setIsLoading(true);
-    setError('');
     try {
       const data = await commentService.list(taskId);
       setComments(data);
     } catch {
-      setError('Failed to load comments.');
+      addToast('Failed to load comments.', 'error');
     } finally {
       setIsLoading(false);
     }
-  }, [taskId]);
+  }, [taskId, addToast]);
 
   useEffect(() => {
     fetchComments();
@@ -53,6 +53,7 @@ export default function CommentList({ taskId }: CommentListProps) {
   const handleCreate = async (content: string) => {
     const newComment = await commentService.create(taskId, content);
     setComments((prev) => [...prev, newComment]);
+    addToast('Comment added', 'success');
   };
 
   const handleUpdate = async (commentId: string, content: string) => {
@@ -61,6 +62,7 @@ export default function CommentList({ taskId }: CommentListProps) {
       prev.map((c) => (c.id === commentId ? updated : c))
     );
     setEditingId(null);
+    addToast('Comment updated', 'success');
   };
 
   const handleDelete = async () => {
@@ -69,8 +71,9 @@ export default function CommentList({ taskId }: CommentListProps) {
     try {
       await commentService.delete(taskId, deletingId);
       setComments((prev) => prev.filter((c) => c.id !== deletingId));
+      addToast('Comment deleted', 'success');
     } catch {
-      setError('Failed to delete comment.');
+      addToast('Failed to delete comment.', 'error');
     } finally {
       setIsDeleting(false);
       setDeletingId(null);
@@ -82,8 +85,6 @@ export default function CommentList({ taskId }: CommentListProps) {
       <h3>Comments ({comments.length})</h3>
 
       <CommentForm onSubmit={handleCreate} />
-
-      {error && <div className="alert alert-error comment-error">{error}</div>}
 
       {isLoading ? (
         <div className="comments-loading">

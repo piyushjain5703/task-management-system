@@ -195,6 +195,16 @@
   margin-bottom: 8px;
 }
 
+.files-empty {
+  padding: 16px 0 4px;
+  text-align: center;
+}
+
+.files-empty p {
+  color: #aaa;
+  font-size: 12px;
+}
+
 @media (max-width: 768px) {
   .file-dropzone {
     padding: 12px;

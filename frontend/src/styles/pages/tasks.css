@@ -281,9 +281,9 @@
   min-height: 70px;
 }
 
-.field-error {
+.task-form .field-error {
   font-size: 11px;
-  color: #666;
+  color: #c44;
 }
 
 .form-row {
@@ -481,17 +481,37 @@
     flex-direction: column;
   }
 
-  .header-nav {
-    display: none;
-  }
-
-  .header-username {
-    display: none;
-  }
-
   .pagination {
     flex-direction: column;
     gap: 8px;
     align-items: center;
+  }
+
+  .task-detail-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .quick-status {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: 12px;
+  }
+
+  .task-detail-main {
+    padding: 14px;
+  }
+
+  .task-detail-title-row h1 {
+    font-size: 1rem;
+  }
+
+  .task-detail-badges {
+    gap: 4px;
   }
 }

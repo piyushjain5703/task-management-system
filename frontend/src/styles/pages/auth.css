@@ -63,16 +63,16 @@
 }
 
 .auth-card input.input-error {
-  border-color: #999;
+  border-color: #c44;
 }
 
 .auth-card input.input-error:focus {
-  border-color: #666;
+  border-color: #a33;
 }
 
 .field-error {
   display: block;
-  color: #666;
+  color: #c44;
   font-size: 11px;
   margin-top: 3px;
 }
@@ -87,4 +87,10 @@
 .auth-link a {
   font-weight: 600;
   color: #333;
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 24px 20px;
+  }
 }

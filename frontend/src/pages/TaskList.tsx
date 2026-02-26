@@ -8,13 +8,15 @@ import TaskForm from '../components/tasks/TaskForm';
 import type { TaskFormData } from '../components/tasks/TaskForm';
 import Pagination from '../components/tasks/Pagination';
 import Modal from '../components/common/Modal';
+import { TaskCardSkeleton } from '../components/common/Skeleton';
+import { useToast } from '../hooks/useToast';
 
 export default function TaskList() {
+  const { addToast } = useToast();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filters, setFilters] = useState<TaskQuery>({
@@ -26,24 +28,23 @@ export default function TaskList() {
 
   const fetchTasks = useCallback(async () => {
     setIsLoading(true);
-    setError('');
     try {
       const response = await taskService.list(filters);
       setTasks(response.data);
       setMeta(response.meta);
     } catch {
-      setError('Failed to load tasks. Please try again.');
+      addToast('Failed to load tasks. Please try again.', 'error');
     } finally {
       setIsLoading(false);
     }
-  }, [filters]);
+  }, [filters, addToast]);
 
   const fetchUsers = useCallback(async () => {
     try {
       const response = await taskService.getUsers();
       setUsers(response);
     } catch {
-      // Non-critical, silently fail
+      // Non-critical
     }
   }, []);
 
@@ -76,9 +77,10 @@ export default function TaskList() {
         assigned_to: data.assigned_to || undefined,
       } as Partial<Task>);
       setShowCreateModal(false);
+      addToast('Task created successfully', 'success');
       fetchTasks();
     } catch {
-      setError('Failed to create task. Please try again.');
+      addToast('Failed to create task. Please try again.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -98,12 +100,11 @@ export default function TaskList() {
 
       <TaskFilters filters={filters} onFilterChange={handleFilterChange} />
 
-      {error && <div className="alert alert-error">{error}</div>}
-
       {isLoading ? (
-        <div className="loading-container">
-          <div className="spinner" />
-          <p>Loading tasks...</p>
+        <div className="task-grid">
+          {[...Array(6)].map((_, i) => (
+            <TaskCardSkeleton key={i} />
+          ))}
         </div>
       ) : tasks.length === 0 ? (
         <div className="empty-state">

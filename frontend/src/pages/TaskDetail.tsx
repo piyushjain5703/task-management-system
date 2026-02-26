@@ -4,6 +4,7 @@ import { taskService } from '../services/task.service';
 import type { Task, User } from '../types';
 import { TaskStatus, TaskPriority } from '../types';
 import { useAuth } from '../hooks/useAuth';
+import { useToast } from '../hooks/useToast';
 import TaskForm from '../components/tasks/TaskForm';
 import type { TaskFormData } from '../components/tasks/TaskForm';
 import Modal from '../components/common/Modal';
@@ -11,6 +12,7 @@ import ConfirmDialog from '../components/common/ConfirmDialog';
 import { formatDate, isOverdue } from '../components/tasks/TaskCard';
 import CommentList from '../components/comments/CommentList';
 import FileList from '../components/files/FileList';
+import { DetailSkeleton } from '../components/common/Skeleton';
 
 const statusLabels: Record<TaskStatus, string> = {
   [TaskStatus.TODO]: 'To Do',
@@ -40,6 +42,7 @@ export default function TaskDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
+  const { addToast } = useToast();
   const [task, setTask] = useState<Task | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -97,8 +100,9 @@ export default function TaskDetail() {
       } as Partial<Task>);
       setTask(updated);
       setShowEditModal(false);
+      addToast('Task updated successfully', 'success');
     } catch {
-      setError('Failed to update task.');
+      addToast('Failed to update task.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -109,9 +113,10 @@ export default function TaskDetail() {
     setIsSubmitting(true);
     try {
       await taskService.delete(id);
+      addToast('Task deleted successfully', 'success');
       navigate('/tasks');
     } catch {
-      setError('Failed to delete task.');
+      addToast('Failed to delete task.', 'error');
     } finally {
       setIsSubmitting(false);
       setShowDeleteDialog(false);
@@ -123,26 +128,21 @@ export default function TaskDetail() {
     try {
       const updated = await taskService.update(id, { status: newStatus } as Partial<Task>);
       setTask(updated);
+      addToast(`Task moved to ${statusLabels[newStatus]}`, 'success');
     } catch {
-      setError('Failed to update status.');
+      addToast('Failed to update status.', 'error');
     }
   };
 
   if (isLoading) {
-    return (
-      <div className="page">
-        <div className="loading-container">
-          <div className="spinner" />
-          <p>Loading task...</p>
-        </div>
-      </div>
-    );
+    return <DetailSkeleton />;
   }
 
   if (error && !task) {
     return (
       <div className="page">
         <div className="empty-state">
+          <div className="empty-state-icon">🔍</div>
           <h3>Task not found</h3>
           <p>{error}</p>
           <button className="btn btn-primary" onClick={() => navigate('/tasks')}>
@@ -176,8 +176,6 @@ export default function TaskDetail() {
           )}
         </div>
       </div>
-
-      {error && <div className="alert alert-error">{error}</div>}
 
       <div className="task-detail-content">
         <div className="task-detail-main">

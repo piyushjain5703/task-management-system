@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { analyticsService, type OverviewData, type TrendData } from '../services/analytics.service';
+import { DashboardSkeleton } from '../components/common/Skeleton';
 
 const STATUS_COLORS: Record<string, string> = {
   TODO: '#999',
@@ -52,20 +53,14 @@ export default function Dashboard() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="page">
-        <div className="loading-container">
-          <div className="spinner" />
-          <p>Loading dashboard...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (error || !overview) {
     return (
       <div className="page">
         <div className="empty-state">
+          <div className="empty-state-icon">📊</div>
           <h3>{error || 'Unable to load data'}</h3>
           <p>Please try again later.</p>
         </div>

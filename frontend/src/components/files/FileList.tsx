@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { fileService } from '../../services/file.service';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../hooks/useToast';
 import FileUpload from './FileUpload';
 import ConfirmDialog from '../common/ConfirmDialog';
 import type { FileAttachment } from '../../types';
@@ -30,11 +31,11 @@ function getFileIcon(mimeType: string): string {
 
 export default function FileList({ taskId, taskCreatorId, initialFiles }: FileListProps) {
   const { user: currentUser } = useAuth();
+  const { addToast } = useToast();
   const [files, setFiles] = useState<FileAttachment[]>(initialFiles || []);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
-  const [error, setError] = useState('');
 
   useEffect(() => {
     if (initialFiles) {
@@ -44,7 +45,8 @@ export default function FileList({ taskId, taskCreatorId, initialFiles }: FileLi
 
   const handleUploadComplete = useCallback((uploaded: FileAttachment[]) => {
     setFiles((prev) => [...prev, ...uploaded]);
-  }, []);
+    addToast(`${uploaded.length} file${uploaded.length > 1 ? 's' : ''} uploaded`, 'success');
+  }, [addToast]);
 
   const handleDownload = async (file: FileAttachment) => {
     setDownloadingId(file.id);
@@ -59,7 +61,7 @@ export default function FileList({ taskId, taskCreatorId, initialFiles }: FileLi
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch {
-      setError('Failed to download file.');
+      addToast('Failed to download file.', 'error');
     } finally {
       setDownloadingId(null);
     }
@@ -71,8 +73,9 @@ export default function FileList({ taskId, taskCreatorId, initialFiles }: FileLi
     try {
       await fileService.delete(taskId, deletingId);
       setFiles((prev) => prev.filter((f) => f.id !== deletingId));
+      addToast('File deleted', 'success');
     } catch {
-      setError('Failed to delete file.');
+      addToast('Failed to delete file.', 'error');
     } finally {
       setIsDeleting(false);
       setDeletingId(null);
@@ -90,9 +93,7 @@ export default function FileList({ taskId, taskCreatorId, initialFiles }: FileLi
 
       <FileUpload taskId={taskId} onUploadComplete={handleUploadComplete} />
 
-      {error && <div className="alert alert-error file-error">{error}</div>}
-
-      {files.length > 0 && (
+      {files.length > 0 ? (
         <div className="file-list">
           {files.map((file) => (
             <div key={file.id} className="file-item">
@@ -122,6 +123,10 @@ export default function FileList({ taskId, taskCreatorId, initialFiles }: FileLi
               )}
             </div>
           ))}
+        </div>
+      ) : (
+        <div className="files-empty">
+          <p>No files attached yet.</p>
         </div>
       )}
 
