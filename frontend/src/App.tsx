@@ -7,6 +7,8 @@ import Layout from './components/layout/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import TaskList from './pages/TaskList';
+import TaskDetail from './pages/TaskDetail';
 import Analytics from './pages/Analytics';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
@@ -22,6 +24,8 @@ function App() {
 
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
+            <Route path="/tasks" element={<ProtectedRoute><Layout><TaskList /></Layout></ProtectedRoute>} />
+            <Route path="/tasks/:id" element={<ProtectedRoute><Layout><TaskDetail /></Layout></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><Layout><Analytics /></Layout></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Layout><Profile /></Layout></ProtectedRoute>} />
 
