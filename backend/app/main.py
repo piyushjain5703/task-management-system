@@ -123,3 +123,28 @@ app.include_router(analytics.router)
 @app.get("/api/health")
 async def health_check():
     return {"success": True, "message": "API is running"}
+
+
+@app.get("/api/debug/db")
+async def debug_db():
+    from sqlalchemy import text
+    from app.core.database import engine
+    db_url = settings.DATABASE_URL
+    masked = db_url.split("@")[-1] if "@" in db_url else "not set"
+    try:
+        async with engine.connect() as conn:
+            result = await conn.execute(text("SELECT current_database(), count(*) FROM information_schema.tables WHERE table_schema='public'"))
+            row = result.first()
+            return {
+                "db_host": masked,
+                "connected": True,
+                "database": row[0],
+                "public_tables": row[1],
+            }
+    except Exception as e:
+        return {
+            "db_host": masked,
+            "connected": False,
+            "error_type": type(e).__name__,
+            "error": str(e),
+        }
