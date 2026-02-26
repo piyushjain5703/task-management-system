@@ -1,7 +1,10 @@
 from contextlib import asynccontextmanager
+import logging
 import os
 
 from fastapi import FastAPI, Request
+
+logger = logging.getLogger(__name__)
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -97,6 +100,7 @@ async def app_exception_handler(request: Request, exc: AppException):
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
     return JSONResponse(
         status_code=500,
         content={
