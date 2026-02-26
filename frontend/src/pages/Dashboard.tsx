@@ -228,8 +228,8 @@ export default function Dashboard() {
                 contentStyle={tooltipStyle}
                 labelStyle={tooltipLabelStyle}
                 itemStyle={tooltipItemStyle}
-                labelFormatter={(v: string) => {
-                  const d = new Date(v + 'T00:00:00');
+                labelFormatter={(v) => {
+                  const d = new Date(String(v) + 'T00:00:00');
                   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 }}
               />
