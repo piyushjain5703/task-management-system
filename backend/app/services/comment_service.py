@@ -9,6 +9,7 @@ from app.models.comment import Comment
 from app.models.task import Task
 from app.schemas.comment import CommentCreate, CommentUpdate
 from app.utils.exceptions import NotFoundException, ForbiddenException
+from app.utils.sanitize import sanitize_string
 
 
 async def _get_task_or_404(db: AsyncSession, task_id: uuid.UUID) -> Task:
@@ -27,7 +28,7 @@ async def create_comment(
     await _get_task_or_404(db, task_id)
 
     comment = Comment(
-        content=data.content,
+        content=sanitize_string(data.content),
         task_id=task_id,
         user_id=user_id,
     )
@@ -75,7 +76,7 @@ async def update_comment(
     if comment.user_id != user_id:
         raise ForbiddenException("You can only edit your own comments")
 
-    comment.content = data.content
+    comment.content = sanitize_string(data.content)
     await db.flush()
 
     result = await db.execute(

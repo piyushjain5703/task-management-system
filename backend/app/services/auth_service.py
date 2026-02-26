@@ -5,6 +5,7 @@ from app.models.user import User
 from app.schemas.user import UserRegister
 from app.core.security import hash_password, verify_password, create_access_token, create_refresh_token
 from app.utils.exceptions import ConflictException, UnauthorizedException
+from app.utils.sanitize import sanitize_string
 
 
 async def register_user(db: AsyncSession, data: UserRegister) -> User:
@@ -13,7 +14,7 @@ async def register_user(db: AsyncSession, data: UserRegister) -> User:
         raise ConflictException("A user with this email already exists")
 
     user = User(
-        name=data.name,
+        name=sanitize_string(data.name),
         email=data.email,
         password=hash_password(data.password),
     )

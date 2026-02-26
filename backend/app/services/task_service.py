@@ -12,6 +12,7 @@ from app.models.file import File
 from app.models.user import User
 from app.schemas.task import TaskCreate, TaskUpdate
 from app.utils.exceptions import NotFoundException, ForbiddenException, BadRequestException
+from app.utils.sanitize import sanitize_string
 
 
 async def create_task(db: AsyncSession, data: TaskCreate, user_id: uuid.UUID) -> Task:
@@ -20,13 +21,15 @@ async def create_task(db: AsyncSession, data: TaskCreate, user_id: uuid.UUID) ->
         if not assignee.scalar_one_or_none():
             raise BadRequestException("Assigned user does not exist")
 
+    sanitized_tags = [sanitize_string(t) for t in data.tags] if data.tags else data.tags
+
     task = Task(
-        title=data.title,
-        description=data.description,
+        title=sanitize_string(data.title),
+        description=sanitize_string(data.description) if data.description else data.description,
         status=TaskStatus(data.status) if data.status else TaskStatus.TODO,
         priority=TaskPriority(data.priority) if data.priority else TaskPriority.MEDIUM,
         due_date=data.due_date,
-        tags=data.tags,
+        tags=sanitized_tags,
         assigned_to=data.assigned_to,
         created_by=user_id,
     )
@@ -129,6 +132,12 @@ async def update_task(
             raise BadRequestException("Assigned user does not exist")
 
     update_data = data.model_dump(exclude_unset=True)
+    if "title" in update_data and update_data["title"]:
+        update_data["title"] = sanitize_string(update_data["title"])
+    if "description" in update_data and update_data["description"]:
+        update_data["description"] = sanitize_string(update_data["description"])
+    if "tags" in update_data and update_data["tags"]:
+        update_data["tags"] = [sanitize_string(t) for t in update_data["tags"]]
     if "status" in update_data and update_data["status"]:
         update_data["status"] = TaskStatus(update_data["status"])
     if "priority" in update_data and update_data["priority"]:
@@ -166,13 +175,14 @@ async def bulk_create_tasks(
 
     created_tasks = []
     for data in tasks_data:
+        sanitized_tags = [sanitize_string(t) for t in data.tags] if data.tags else data.tags
         task = Task(
-            title=data.title,
-            description=data.description,
+            title=sanitize_string(data.title),
+            description=sanitize_string(data.description) if data.description else data.description,
             status=TaskStatus(data.status) if data.status else TaskStatus.TODO,
             priority=TaskPriority(data.priority) if data.priority else TaskPriority.MEDIUM,
             due_date=data.due_date,
-            tags=data.tags,
+            tags=sanitized_tags,
             assigned_to=data.assigned_to,
             created_by=user_id,
         )

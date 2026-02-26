@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.rate_limiter import limiter
 from app.deps.database import get_db
 from app.deps.auth import get_current_user
 from app.models.user import User
@@ -13,14 +14,17 @@ router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
 
 @router.post("/register", response_model=None)
-async def register(data: UserRegister, db: AsyncSession = Depends(get_db)):
+@limiter.limit("5/minute")
+async def register(request: Request, data: UserRegister, db: AsyncSession = Depends(get_db)):
     user = await register_user(db, data)
     tokens = generate_tokens(user)
     return success_response(TokenResponse(**tokens).model_dump())
 
 
 @router.post("/login", response_model=None)
+@limiter.limit("10/minute")
 async def login(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db),
 ):

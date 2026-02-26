@@ -12,3 +12,5 @@ pydantic
 pydantic-settings
 email-validator
 python-dotenv
+slowapi
+bleach
