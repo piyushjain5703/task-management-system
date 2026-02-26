@@ -3,6 +3,7 @@
 @import './components/layout.css';
 @import './components/modal.css';
 @import './components/comments.css';
+@import './components/files.css';
 @import './pages/auth.css';
 @import './pages/profile.css';
 @import './pages/tasks.css';

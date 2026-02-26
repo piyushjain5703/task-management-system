@@ -10,6 +10,7 @@ import Modal from '../components/common/Modal';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import { formatDate, isOverdue } from '../components/tasks/TaskCard';
 import CommentList from '../components/comments/CommentList';
+import FileList from '../components/files/FileList';
 
 const statusLabels: Record<TaskStatus, string> = {
   [TaskStatus.TODO]: 'To Do',
@@ -242,6 +243,14 @@ export default function TaskDetail() {
 
           <div className="task-detail-section">
             <CommentList taskId={task.id} />
+          </div>
+
+          <div className="task-detail-section">
+            <FileList
+              taskId={task.id}
+              taskCreatorId={task.created_by}
+              initialFiles={task.files}
+            />
           </div>
         </div>
 
