@@ -9,6 +9,7 @@ import type { TaskFormData } from '../components/tasks/TaskForm';
 import Modal from '../components/common/Modal';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import { formatDate, isOverdue } from '../components/tasks/TaskCard';
+import CommentList from '../components/comments/CommentList';
 
 const statusLabels: Record<TaskStatus, string> = {
   [TaskStatus.TODO]: 'To Do',
@@ -239,6 +240,9 @@ export default function TaskDetail() {
             </div>
           )}
 
+          <div className="task-detail-section">
+            <CommentList taskId={task.id} />
+          </div>
         </div>
 
         <div className="task-detail-sidebar">
