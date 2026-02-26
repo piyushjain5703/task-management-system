@@ -12,7 +12,7 @@ interface CommentFormProps {
 export default function CommentForm({
   onSubmit,
   initialContent = '',
-  placeholder = 'Write a comment...',
+  placeholder = 'Write a comment... (Markdown supported)',
   submitLabel = 'Comment',
   onCancel,
   autoFocus = false,

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import Markdown from 'react-markdown';
 import { commentService } from '../../services/comment.service';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../hooks/useToast';
@@ -127,7 +128,9 @@ export default function CommentList({ taskId }: CommentListProps) {
                     />
                   ) : (
                     <>
-                      <p className="comment-content">{comment.content}</p>
+                      <div className="comment-content">
+                        <Markdown>{comment.content}</Markdown>
+                      </div>
                       {isOwner && (
                         <div className="comment-actions">
                           <button
