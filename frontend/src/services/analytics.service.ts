@@ -32,8 +32,10 @@ export const analyticsService = {
     return response.data.data;
   },
 
-  async getTrends(): Promise<TrendData[]> {
-    const response = await api.get<ApiResponse<TrendData[]>>('/analytics/trends');
+  async getTrends(days?: number): Promise<TrendData[]> {
+    const response = await api.get<ApiResponse<TrendData[]>>('/analytics/trends', {
+      params: days ? { days } : undefined,
+    });
     return response.data.data;
   },
 

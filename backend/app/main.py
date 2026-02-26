@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.core.config import get_settings
-from app.routers import auth, tasks, comments, files
+from app.routers import auth, tasks, comments, files, analytics
 from app.utils.exceptions import AppException
 
 settings = get_settings()
@@ -66,6 +66,7 @@ app.include_router(auth.router)
 app.include_router(tasks.router)
 app.include_router(comments.router)
 app.include_router(files.router)
+app.include_router(analytics.router)
 
 
 @app.get("/api/health")
