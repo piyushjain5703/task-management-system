@@ -1,5 +1,6 @@
 import { TaskStatus, TaskPriority } from '../../types';
 import type { TaskQuery } from '../../services/task.service';
+import { useAuth } from '../../hooks/useAuth';
 
 interface TaskFiltersProps {
   filters: TaskQuery;
@@ -7,6 +8,8 @@ interface TaskFiltersProps {
 }
 
 export default function TaskFilters({ filters, onFilterChange }: TaskFiltersProps) {
+  const { user } = useAuth();
+
   const handleChange = (key: keyof TaskQuery, value: string) => {
     onFilterChange({ ...filters, [key]: value || undefined, page: 1 });
   };
@@ -20,7 +23,17 @@ export default function TaskFilters({ filters, onFilterChange }: TaskFiltersProp
     });
   };
 
-  const hasActiveFilters = filters.status || filters.priority || filters.search || filters.tags;
+  const isMyTasks = !!filters.assigned_to && filters.assigned_to === user?.id;
+
+  const toggleMyTasks = () => {
+    onFilterChange({
+      ...filters,
+      assigned_to: isMyTasks ? undefined : user?.id,
+      page: 1,
+    });
+  };
+
+  const hasActiveFilters = filters.status || filters.priority || filters.search || filters.tags || filters.assigned_to;
 
   return (
     <div className="task-filters">
@@ -33,6 +46,13 @@ export default function TaskFilters({ filters, onFilterChange }: TaskFiltersProp
             onChange={(e) => handleChange('search', e.target.value)}
           />
         </div>
+
+        <button
+          className={`btn btn-sm ${isMyTasks ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={toggleMyTasks}
+        >
+          Assigned to Me
+        </button>
 
         <div className="filter-group">
           <select

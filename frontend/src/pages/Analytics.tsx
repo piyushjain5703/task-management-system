@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { analyticsService, type PerformanceData, type TrendData } from '../services/analytics.service';
+import { analyticsService, type PerformanceData, type TrendData, type AnalyticsQuery } from '../services/analytics.service';
 import { useToast } from '../hooks/useToast';
 import { useTheme } from '../hooks/useTheme';
+import { useAuth } from '../hooks/useAuth';
 
 const RANGE_OPTIONS = [
   { label: '7 days', value: 7 },
@@ -32,6 +33,7 @@ function useChartColors() {
 
 export default function Analytics() {
   const { addToast } = useToast();
+  const { user } = useAuth();
   const c = useChartColors();
   const [performance, setPerformance] = useState<PerformanceData[]>([]);
   const [trends, setTrends] = useState<TrendData[]>([]);
@@ -39,14 +41,16 @@ export default function Analytics() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [exporting, setExporting] = useState(false);
+  const [myTasksOnly, setMyTasksOnly] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError('');
+    const query: AnalyticsQuery = myTasksOnly && user ? { assigned_to: user.id } : {};
     try {
       const [perfData, trendsData] = await Promise.all([
-        analyticsService.getPerformance(),
-        analyticsService.getTrends(days),
+        analyticsService.getPerformance(query),
+        analyticsService.getTrends(days, query),
       ]);
       setPerformance(perfData);
       setTrends(trendsData);
@@ -55,7 +59,7 @@ export default function Analytics() {
     } finally {
       setLoading(false);
     }
-  }, [days]);
+  }, [days, myTasksOnly, user]);
 
   useEffect(() => {
     fetchData();
@@ -63,8 +67,9 @@ export default function Analytics() {
 
   const handleExport = async () => {
     setExporting(true);
+    const query: AnalyticsQuery = myTasksOnly && user ? { assigned_to: user.id } : {};
     try {
-      const blob = await analyticsService.exportCsv();
+      const blob = await analyticsService.exportCsv(query);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -131,13 +136,21 @@ export default function Analytics() {
           <h1>Analytics</h1>
           <p className="page-subtitle">Performance metrics and task trends</p>
         </div>
-        <button
-          className="btn btn-primary"
-          onClick={handleExport}
-          disabled={exporting}
-        >
-          {exporting ? 'Exporting...' : 'Export CSV'}
-        </button>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button
+            className={`btn btn-sm ${myTasksOnly ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setMyTasksOnly((v) => !v)}
+          >
+            My Tasks
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={handleExport}
+            disabled={exporting}
+          >
+            {exporting ? 'Exporting...' : 'Export CSV'}
+          </button>
+        </div>
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}

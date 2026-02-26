@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { analyticsService, type OverviewData, type TrendData } from '../services/analytics.service';
+import { analyticsService, type OverviewData, type TrendData, type AnalyticsQuery } from '../services/analytics.service';
 import { DashboardSkeleton } from '../components/common/Skeleton';
 import { useTheme } from '../hooks/useTheme';
+import { useAuth } from '../hooks/useAuth';
 
 function useChartColors() {
   const { theme } = useTheme();
@@ -42,10 +43,12 @@ const PRIORITY_LABELS: Record<string, string> = {
 
 export default function Dashboard() {
   const c = useChartColors();
+  const { user } = useAuth();
   const [overview, setOverview] = useState<OverviewData | null>(null);
   const [trends, setTrends] = useState<TrendData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [myTasksOnly, setMyTasksOnly] = useState(false);
 
   const STATUS_COLORS: Record<string, string> = {
     TODO: c.pieTodo,
@@ -59,23 +62,27 @@ export default function Dashboard() {
     HIGH: c.prioHigh,
   };
 
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    const query: AnalyticsQuery = myTasksOnly && user ? { assigned_to: user.id } : {};
+    try {
+      const [overviewData, trendsData] = await Promise.all([
+        analyticsService.getOverview(query),
+        analyticsService.getTrends(undefined, query),
+      ]);
+      setOverview(overviewData);
+      setTrends(trendsData);
+    } catch {
+      setError('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  }, [myTasksOnly, user]);
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [overviewData, trendsData] = await Promise.all([
-          analyticsService.getOverview(),
-          analyticsService.getTrends(),
-        ]);
-        setOverview(overviewData);
-        setTrends(trendsData);
-      } catch {
-        setError('Failed to load dashboard data');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   if (loading) {
     return <DashboardSkeleton />;
@@ -127,9 +134,17 @@ export default function Dashboard() {
           <h1>Dashboard</h1>
           <p className="page-subtitle">Overview of your tasks and activity</p>
         </div>
-        <Link to="/analytics" className="btn btn-secondary">
-          View Full Analytics
-        </Link>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button
+            className={`btn btn-sm ${myTasksOnly ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setMyTasksOnly((v) => !v)}
+          >
+            My Tasks
+          </button>
+          <Link to="/analytics" className="btn btn-secondary">
+            View Full Analytics
+          </Link>
+        </div>
       </div>
 
       <div className="summary-cards">

@@ -11,15 +11,21 @@ from app.models.task import Task, TaskStatus, TaskPriority
 from app.models.user import User
 
 
-async def get_overview(db: AsyncSession) -> dict:
-    base = select(Task).where(Task.is_deleted == False)  # noqa: E712
+async def get_overview(
+    db: AsyncSession, assigned_to: Optional[uuid.UUID] = None
+) -> dict:
+    conditions = [Task.is_deleted == False]  # noqa: E712
+    if assigned_to:
+        conditions.append(Task.assigned_to == assigned_to)
+
+    base = select(Task).where(and_(*conditions))
 
     total_q = select(func.count()).select_from(base.subquery())
     total = (await db.execute(total_q)).scalar() or 0
 
     status_q = (
         select(Task.status, func.count())
-        .where(Task.is_deleted == False)  # noqa: E712
+        .where(and_(*conditions))
         .group_by(Task.status)
     )
     status_rows = (await db.execute(status_q)).all()
@@ -27,24 +33,22 @@ async def get_overview(db: AsyncSession) -> dict:
 
     priority_q = (
         select(Task.priority, func.count())
-        .where(Task.is_deleted == False)  # noqa: E712
+        .where(and_(*conditions))
         .group_by(Task.priority)
     )
     priority_rows = (await db.execute(priority_q)).all()
     by_priority = {row[0].value: row[1] for row in priority_rows}
 
     now = datetime.now(timezone.utc)
+    overdue_conditions = conditions + [
+        Task.status != TaskStatus.DONE,
+        Task.due_date != None,  # noqa: E711
+        Task.due_date < now,
+    ]
     overdue_q = (
         select(func.count())
         .select_from(Task)
-        .where(
-            and_(
-                Task.is_deleted == False,  # noqa: E712
-                Task.status != TaskStatus.DONE,
-                Task.due_date != None,  # noqa: E711
-                Task.due_date < now,
-            )
-        )
+        .where(and_(*overdue_conditions))
     )
     overdue = (await db.execute(overdue_q)).scalar() or 0
 
@@ -64,7 +68,17 @@ async def get_overview(db: AsyncSession) -> dict:
     }
 
 
-async def get_performance(db: AsyncSession) -> list[dict]:
+async def get_performance(
+    db: AsyncSession, assigned_to: Optional[uuid.UUID] = None
+) -> list[dict]:
+    conditions = [
+        Task.is_deleted == False,  # noqa: E712
+        Task.status == TaskStatus.DONE,
+        Task.assigned_to != None,  # noqa: E711
+    ]
+    if assigned_to:
+        conditions.append(Task.assigned_to == assigned_to)
+
     completed_q = (
         select(
             Task.assigned_to,
@@ -75,13 +89,7 @@ async def get_performance(db: AsyncSession) -> list[dict]:
             ).label("avg_completion_seconds"),
         )
         .join(User, Task.assigned_to == User.id)
-        .where(
-            and_(
-                Task.is_deleted == False,  # noqa: E712
-                Task.status == TaskStatus.DONE,
-                Task.assigned_to != None,  # noqa: E711
-            )
-        )
+        .where(and_(*conditions))
         .group_by(Task.assigned_to, User.name)
         .order_by(func.count().desc())
     )
@@ -102,19 +110,29 @@ async def get_performance(db: AsyncSession) -> list[dict]:
     return results
 
 
-async def get_trends(db: AsyncSession, days: int = 30) -> list[dict]:
+async def get_trends(
+    db: AsyncSession, days: int = 30, assigned_to: Optional[uuid.UUID] = None
+) -> list[dict]:
     now = datetime.now(timezone.utc)
     start = now - timedelta(days=days)
+
+    created_conditions = [
+        Task.is_deleted == False,  # noqa: E712
+        Task.created_at >= start,
+    ]
+    completed_conditions = [
+        Task.is_deleted == False,  # noqa: E712
+        Task.status == TaskStatus.DONE,
+        Task.updated_at >= start,
+    ]
+    if assigned_to:
+        created_conditions.append(Task.assigned_to == assigned_to)
+        completed_conditions.append(Task.assigned_to == assigned_to)
 
     created_day = cast(Task.created_at, Date).label("day")
     created_q = (
         select(created_day, func.count().label("count"))
-        .where(
-            and_(
-                Task.is_deleted == False,  # noqa: E712
-                Task.created_at >= start,
-            )
-        )
+        .where(and_(*created_conditions))
         .group_by(created_day)
         .order_by(created_day)
     )
@@ -123,13 +141,7 @@ async def get_trends(db: AsyncSession, days: int = 30) -> list[dict]:
     completed_day = cast(Task.updated_at, Date).label("day")
     completed_q = (
         select(completed_day, func.count().label("count"))
-        .where(
-            and_(
-                Task.is_deleted == False,  # noqa: E712
-                Task.status == TaskStatus.DONE,
-                Task.updated_at >= start,
-            )
-        )
+        .where(and_(*completed_conditions))
         .group_by(completed_day)
         .order_by(completed_day)
     )
@@ -156,10 +168,16 @@ async def get_trends(db: AsyncSession, days: int = 30) -> list[dict]:
     return results
 
 
-async def export_tasks_csv(db: AsyncSession) -> str:
+async def export_tasks_csv(
+    db: AsyncSession, assigned_to: Optional[uuid.UUID] = None
+) -> str:
+    conditions = [Task.is_deleted == False]  # noqa: E712
+    if assigned_to:
+        conditions.append(Task.assigned_to == assigned_to)
+
     query = (
         select(Task)
-        .where(Task.is_deleted == False)  # noqa: E712
+        .where(and_(*conditions))
         .order_by(Task.created_at.desc())
     )
     result = await db.execute(query)
