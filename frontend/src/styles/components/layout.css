@@ -2,8 +2,8 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: white;
-  border-bottom: 1px solid #ddd;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-primary);
   height: var(--header-height);
 }
 
@@ -20,12 +20,12 @@
 .header-logo {
   font-size: 14px;
   font-weight: 700;
-  color: #111;
+  color: var(--text-heading);
   flex-shrink: 0;
 }
 
 .header-logo:hover {
-  color: #000;
+  color: var(--text-link-hover);
 }
 
 .header-nav {
@@ -40,22 +40,22 @@
   border-radius: 4px;
   font-size: 12px;
   font-weight: 500;
-  color: #666;
+  color: var(--text-tertiary);
 }
 
 .nav-link:hover {
-  color: #111;
-  background: #f0f0f0;
+  color: var(--text-heading);
+  background: var(--bg-hover);
 }
 
 .nav-link-active {
-  color: #111;
-  background: #eee;
+  color: var(--text-heading);
+  background: var(--bg-active);
 }
 
 .nav-link-active:hover {
-  color: #111;
-  background: #eee;
+  color: var(--text-heading);
+  background: var(--bg-active);
 }
 
 .header-actions {
@@ -70,20 +70,20 @@
   gap: 6px;
   padding: 3px 8px;
   border-radius: 4px;
-  color: #444;
+  color: var(--text-secondary);
 }
 
 .header-user:hover {
-  background: #f0f0f0;
-  color: #111;
+  background: var(--bg-hover);
+  color: var(--text-heading);
 }
 
 .header-avatar {
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: #e0e0e0;
-  color: #555;
+  background: var(--bg-avatar);
+  color: var(--text-avatar);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -115,7 +115,24 @@
   display: none;
   font-size: 20px;
   padding: 4px;
-  color: #333;
+  color: var(--text-link);
+}
+
+.theme-toggle-btn {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-size: 16px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-heading);
 }
 
 @media (max-width: 768px) {
@@ -134,12 +151,12 @@
     top: var(--header-height);
     left: 0;
     right: 0;
-    background: white;
-    border-bottom: 1px solid #ddd;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-primary);
     flex-direction: column;
     padding: 8px 12px;
     gap: 2px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-dropdown);
   }
 
   .header-nav.nav-open .nav-link {

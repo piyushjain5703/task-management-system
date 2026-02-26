@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { analyticsService, type PerformanceData, type TrendData } from '../services/analytics.service';
 import { useToast } from '../hooks/useToast';
+import { useTheme } from '../hooks/useTheme';
 
 const RANGE_OPTIONS = [
   { label: '7 days', value: 7 },
@@ -10,8 +11,28 @@ const RANGE_OPTIONS = [
   { label: '90 days', value: 90 },
 ];
 
+function useChartColors() {
+  const { theme } = useTheme();
+  const dark = theme === 'dark';
+  return {
+    grid: dark ? '#333' : '#eee',
+    tooltipBg: dark ? '#1e1e1e' : '#fff',
+    tooltipBorder: dark ? '#444' : '#ddd',
+    tooltipText: dark ? '#e0e0e0' : '#222',
+    tooltipLabel: dark ? '#aaa' : '#666',
+    axisText: dark ? '#999' : undefined,
+    legendText: dark ? '#aaa' : undefined,
+    lineA: dark ? '#999' : '#888',
+    lineB: dark ? '#ddd' : '#333',
+    barA: dark ? '#555' : '#bbb',
+    barB: dark ? '#999' : '#555',
+    cursorFill: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+  };
+}
+
 export default function Analytics() {
   const { addToast } = useToast();
+  const c = useChartColors();
   const [performance, setPerformance] = useState<PerformanceData[]>([]);
   const [trends, setTrends] = useState<TrendData[]>([]);
   const [days, setDays] = useState(30);
@@ -81,6 +102,17 @@ export default function Analytics() {
   const showWeekly = days > 30;
   const chartData = showWeekly ? weeklyTrends : trends;
 
+  const tooltipStyle = {
+    fontSize: '12px',
+    background: c.tooltipBg,
+    border: `1px solid ${c.tooltipBorder}`,
+    borderRadius: '4px',
+    boxShadow: 'none',
+    color: c.tooltipText,
+  };
+  const tooltipLabelStyle = { color: c.tooltipLabel };
+  const tooltipItemStyle = { color: c.tooltipText };
+
   if (loading) {
     return (
       <div className="page">
@@ -129,26 +161,28 @@ export default function Analytics() {
         <div className="chart-card">
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+              <CartesianGrid strokeDasharray="3 3" stroke={c.grid} />
               <XAxis
                 dataKey="date"
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 10, fill: c.axisText }}
                 tickFormatter={(v: string) => {
                   const d = new Date(v + 'T00:00:00');
                   return `${d.getMonth() + 1}/${d.getDate()}`;
                 }}
               />
-              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: c.axisText }} />
               <Tooltip
-                contentStyle={{ fontSize: '12px', border: '1px solid #ddd', borderRadius: '4px', boxShadow: 'none' }}
+                contentStyle={tooltipStyle}
+                labelStyle={tooltipLabelStyle}
+                itemStyle={tooltipItemStyle}
                 labelFormatter={(v: string) => {
                   const d = new Date(v + 'T00:00:00');
                   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 }}
               />
-              <Legend iconSize={8} wrapperStyle={{ fontSize: '11px' }} />
-              <Line type="monotone" dataKey="created" name="Created" stroke="#888" strokeWidth={2} dot={chartData.length <= 31} />
-              <Line type="monotone" dataKey="completed" name="Completed" stroke="#333" strokeWidth={2} dot={chartData.length <= 31} />
+              <Legend iconSize={8} wrapperStyle={{ fontSize: '11px', color: c.legendText }} />
+              <Line type="monotone" dataKey="created" name="Created" stroke={c.lineA} strokeWidth={2} dot={chartData.length <= 31} />
+              <Line type="monotone" dataKey="completed" name="Completed" stroke={c.lineB} strokeWidth={2} dot={chartData.length <= 31} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -157,26 +191,29 @@ export default function Analytics() {
           <h3>Daily Volume</h3>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={chartData} barSize={showWeekly ? 16 : 8}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+              <CartesianGrid strokeDasharray="3 3" stroke={c.grid} />
               <XAxis
                 dataKey="date"
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 10, fill: c.axisText }}
                 tickFormatter={(v: string) => {
                   const d = new Date(v + 'T00:00:00');
                   return `${d.getMonth() + 1}/${d.getDate()}`;
                 }}
               />
-              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: c.axisText }} />
               <Tooltip
-                contentStyle={{ fontSize: '12px', border: '1px solid #ddd', borderRadius: '4px', boxShadow: 'none' }}
+                contentStyle={tooltipStyle}
+                labelStyle={tooltipLabelStyle}
+                itemStyle={tooltipItemStyle}
+                cursor={{ fill: c.cursorFill }}
                 labelFormatter={(v: string) => {
                   const d = new Date(v + 'T00:00:00');
                   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 }}
               />
-              <Legend iconSize={8} wrapperStyle={{ fontSize: '11px' }} />
-              <Bar dataKey="created" name="Created" fill="#bbb" radius={[2, 2, 0, 0]} />
-              <Bar dataKey="completed" name="Completed" fill="#555" radius={[2, 2, 0, 0]} />
+              <Legend iconSize={8} wrapperStyle={{ fontSize: '11px', color: c.legendText }} />
+              <Bar dataKey="created" name="Created" fill={c.barA} radius={[2, 2, 0, 0]} />
+              <Bar dataKey="completed" name="Completed" fill={c.barB} radius={[2, 2, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

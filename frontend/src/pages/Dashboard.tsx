@@ -3,18 +3,30 @@ import { Link } from 'react-router-dom';
 import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { analyticsService, type OverviewData, type TrendData } from '../services/analytics.service';
 import { DashboardSkeleton } from '../components/common/Skeleton';
+import { useTheme } from '../hooks/useTheme';
 
-const STATUS_COLORS: Record<string, string> = {
-  TODO: '#999',
-  IN_PROGRESS: '#666',
-  DONE: '#333',
-};
-
-const PRIORITY_COLORS: Record<string, string> = {
-  LOW: '#bbb',
-  MEDIUM: '#888',
-  HIGH: '#444',
-};
+function useChartColors() {
+  const { theme } = useTheme();
+  const dark = theme === 'dark';
+  return {
+    grid: dark ? '#333' : '#eee',
+    tooltipBg: dark ? '#1e1e1e' : '#fff',
+    tooltipBorder: dark ? '#444' : '#ddd',
+    tooltipText: dark ? '#e0e0e0' : '#222',
+    tooltipLabel: dark ? '#aaa' : '#666',
+    axisText: dark ? '#999' : undefined,
+    legendText: dark ? '#aaa' : undefined,
+    pieTodo: dark ? '#777' : '#999',
+    pieInProgress: dark ? '#aaa' : '#666',
+    pieDone: dark ? '#ddd' : '#333',
+    prioLow: dark ? '#666' : '#bbb',
+    prioMed: dark ? '#999' : '#888',
+    prioHigh: dark ? '#ccc' : '#444',
+    lineA: dark ? '#999' : '#888',
+    lineB: dark ? '#ddd' : '#333',
+    cursorFill: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+  };
+}
 
 const STATUS_LABELS: Record<string, string> = {
   TODO: 'To Do',
@@ -29,10 +41,23 @@ const PRIORITY_LABELS: Record<string, string> = {
 };
 
 export default function Dashboard() {
+  const c = useChartColors();
   const [overview, setOverview] = useState<OverviewData | null>(null);
   const [trends, setTrends] = useState<TrendData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const STATUS_COLORS: Record<string, string> = {
+    TODO: c.pieTodo,
+    IN_PROGRESS: c.pieInProgress,
+    DONE: c.pieDone,
+  };
+
+  const PRIORITY_COLORS: Record<string, string> = {
+    LOW: c.prioLow,
+    MEDIUM: c.prioMed,
+    HIGH: c.prioHigh,
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -84,6 +109,17 @@ export default function Dashboard() {
 
   const recentTrends = trends.slice(-14);
 
+  const tooltipStyle = {
+    fontSize: '12px',
+    background: c.tooltipBg,
+    border: `1px solid ${c.tooltipBorder}`,
+    borderRadius: '4px',
+    boxShadow: 'none',
+    color: c.tooltipText,
+  };
+  const tooltipLabelStyle = { color: c.tooltipLabel };
+  const tooltipItemStyle = { color: c.tooltipText };
+
   return (
     <div className="page dashboard-page">
       <div className="page-header">
@@ -134,12 +170,10 @@ export default function Dashboard() {
                     <Cell key={index} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip
-                  contentStyle={{ fontSize: '12px', border: '1px solid #ddd', borderRadius: '4px', boxShadow: 'none' }}
-                />
+                <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} />
                 <Legend
                   iconSize={8}
-                  wrapperStyle={{ fontSize: '11px' }}
+                  wrapperStyle={{ fontSize: '11px', color: c.legendText }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -152,12 +186,10 @@ export default function Dashboard() {
           <h3>Tasks by Priority</h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={priorityData} barSize={32}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-              <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-              <Tooltip
-                contentStyle={{ fontSize: '12px', border: '1px solid #ddd', borderRadius: '4px', boxShadow: 'none' }}
-              />
+              <CartesianGrid strokeDasharray="3 3" stroke={c.grid} />
+              <XAxis dataKey="name" tick={{ fontSize: 11, fill: c.axisText }} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: c.axisText }} />
+              <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} cursor={{ fill: c.cursorFill }} />
               <Bar dataKey="value" name="Tasks" radius={[2, 2, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -167,26 +199,28 @@ export default function Dashboard() {
           <h3>Activity Trend (Last 14 Days)</h3>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={recentTrends}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+              <CartesianGrid strokeDasharray="3 3" stroke={c.grid} />
               <XAxis
                 dataKey="date"
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 10, fill: c.axisText }}
                 tickFormatter={(v: string) => {
                   const d = new Date(v + 'T00:00:00');
                   return `${d.getMonth() + 1}/${d.getDate()}`;
                 }}
               />
-              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: c.axisText }} />
               <Tooltip
-                contentStyle={{ fontSize: '12px', border: '1px solid #ddd', borderRadius: '4px', boxShadow: 'none' }}
+                contentStyle={tooltipStyle}
+                labelStyle={tooltipLabelStyle}
+                itemStyle={tooltipItemStyle}
                 labelFormatter={(v: string) => {
                   const d = new Date(v + 'T00:00:00');
                   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 }}
               />
-              <Legend iconSize={8} wrapperStyle={{ fontSize: '11px' }} />
-              <Line type="monotone" dataKey="created" name="Created" stroke="#888" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="completed" name="Completed" stroke="#333" strokeWidth={2} dot={false} />
+              <Legend iconSize={8} wrapperStyle={{ fontSize: '11px', color: c.legendText }} />
+              <Line type="monotone" dataKey="created" name="Created" stroke={c.lineA} strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="completed" name="Completed" stroke={c.lineB} strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>

@@ -1,7 +1,7 @@
 .files-section > h3 {
   font-size: 11px;
   font-weight: 600;
-  color: #888;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   margin-bottom: 12px;
@@ -12,28 +12,28 @@
 }
 
 .file-dropzone {
-  border: 1.5px dashed #ccc;
+  border: 1.5px dashed var(--border-dropzone);
   border-radius: 4px;
   padding: 16px;
   text-align: center;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
-  background: #fafafa;
+  background: var(--bg-dropzone);
 }
 
 .file-dropzone:hover {
-  border-color: #aaa;
-  background: #f5f5f5;
+  border-color: var(--border-dropzone-hover);
+  background: var(--bg-tertiary);
 }
 
 .file-dropzone-active {
-  border-color: #888;
-  background: #f0f0f0;
+  border-color: var(--border-dropzone-active);
+  background: var(--bg-hover);
 }
 
 .file-dropzone-uploading {
   cursor: default;
-  border-color: #ccc;
+  border-color: var(--border-dropzone);
 }
 
 .file-dropzone-content {
@@ -45,19 +45,19 @@
 
 .file-dropzone-icon {
   font-size: 20px;
-  color: #aaa;
+  color: var(--text-faint);
   font-weight: 300;
   line-height: 1;
 }
 
 .file-dropzone-text {
   font-size: 12px;
-  color: #666;
+  color: var(--text-tertiary);
 }
 
 .file-dropzone-hint {
   font-size: 10px;
-  color: #aaa;
+  color: var(--text-faint);
 }
 
 .file-input-hidden {
@@ -76,30 +76,30 @@
   width: 100%;
   max-width: 200px;
   height: 4px;
-  background: #e0e0e0;
+  background: var(--bg-progress-bar);
   border-radius: 2px;
   overflow: hidden;
 }
 
 .file-progress-fill {
   height: 100%;
-  background: #555;
+  background: var(--bg-progress-fill);
   border-radius: 2px;
   transition: width 0.2s ease;
 }
 
 .file-upload-status {
   font-size: 11px;
-  color: #888;
+  color: var(--text-muted);
 }
 
 .file-upload-error {
   font-size: 11px;
-  color: #666;
+  color: var(--text-tertiary);
   margin-top: 6px;
   padding: 4px 8px;
-  background: #f5f5f5;
-  border: 1px solid #ddd;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
   border-radius: 3px;
 }
 
@@ -114,14 +114,14 @@
   align-items: center;
   gap: 8px;
   padding: 6px 8px;
-  border: 1px solid #eee;
+  border: 1px solid var(--border-secondary);
   border-radius: 4px;
-  background: white;
+  background: var(--bg-secondary);
 }
 
 .file-item:hover {
-  border-color: #ddd;
-  background: #fafafa;
+  border-color: var(--border-primary);
+  background: var(--bg-tertiary);
 }
 
 .file-icon {
@@ -141,7 +141,7 @@
 .file-name-btn {
   font-size: 12px;
   font-weight: 500;
-  color: #333;
+  color: var(--text-link);
   text-align: left;
   padding: 0;
   background: none;
@@ -155,19 +155,19 @@
 }
 
 .file-name-btn:hover {
-  color: #000;
+  color: var(--text-link-hover);
   text-decoration: underline;
 }
 
 .file-name-btn:disabled {
-  color: #888;
+  color: var(--text-muted);
   cursor: default;
   text-decoration: none;
 }
 
 .file-meta {
   font-size: 10px;
-  color: #aaa;
+  color: var(--text-faint);
 }
 
 .file-delete-btn {
@@ -179,7 +179,7 @@
   justify-content: center;
   border-radius: 3px;
   font-size: 14px;
-  color: #aaa;
+  color: var(--text-faint);
   background: none;
   border: none;
   cursor: pointer;
@@ -187,8 +187,8 @@
 }
 
 .file-delete-btn:hover {
-  color: #555;
-  background: #eee;
+  color: var(--text-avatar);
+  background: var(--bg-active);
 }
 
 .file-error {
@@ -201,7 +201,7 @@
 }
 
 .files-empty p {
-  color: #aaa;
+  color: var(--text-faint);
   font-size: 12px;
 }
 

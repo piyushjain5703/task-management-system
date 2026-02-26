@@ -5,9 +5,9 @@
 }
 
 .profile-card {
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 6px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-primary);
   width: 100%;
   max-width: 480px;
   overflow: hidden;
@@ -16,8 +16,8 @@
 .profile-avatar-section {
   text-align: center;
   padding: 28px 24px 16px;
-  background: #f5f5f5;
-  border-bottom: 1px solid #e5e5e5;
+  background: var(--bg-profile-section);
+  border-bottom: 1px solid var(--border-tertiary);
 }
 
 .profile-avatar {
@@ -29,7 +29,7 @@
 }
 
 .profile-avatar-placeholder {
-  background: #444;
+  background: var(--bg-avatar-accent);
   color: white;
   display: flex;
   align-items: center;
@@ -44,7 +44,7 @@
 }
 
 .profile-email {
-  color: #888;
+  color: var(--text-muted);
   font-size: 12px;
 }
 
@@ -57,7 +57,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-table);
 }
 
 .profile-detail-row:last-child {
@@ -66,13 +66,13 @@
 
 .profile-label {
   font-size: 12px;
-  color: #888;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
 .profile-value {
   font-weight: 500;
-  color: #222;
+  color: var(--text-primary);
   font-size: 13px;
 }
 
