@@ -1,7 +1,7 @@
 import uuid
 from typing import Optional, List
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.deps.auth import get_current_user
@@ -10,6 +10,7 @@ from app.models.user import User
 from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse, TaskDetailResponse
 from app.schemas.user import UserResponse
 from app.services import task_service
+from app.services.email_service import send_task_assignment_email
 from app.utils.response import success_response, paginated_response, message_response
 
 router = APIRouter(prefix="/api/tasks", tags=["Tasks"])
@@ -30,10 +31,21 @@ async def bulk_create_tasks(
 @router.post("/", response_model=None)
 async def create_task(
     data: TaskCreate,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     task = await task_service.create_task(db, data, current_user.id)
+
+    if task.assignee and task.assigned_to != current_user.id:
+        background_tasks.add_task(
+            send_task_assignment_email,
+            recipient_email=task.assignee.email,
+            recipient_name=task.assignee.name,
+            task_title=task.title,
+            assigner_name=current_user.name,
+        )
+
     return success_response(TaskResponse.model_validate(task).model_dump(mode="json"))
 
 
@@ -97,10 +109,28 @@ async def get_task(
 async def update_task(
     task_id: uuid.UUID,
     data: TaskUpdate,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    old_task = await task_service.get_task(db, task_id)
+    old_assignee_id = old_task.assigned_to
+
     task = await task_service.update_task(db, task_id, data, current_user.id)
+
+    if (
+        task.assignee
+        and task.assigned_to != old_assignee_id
+        and task.assigned_to != current_user.id
+    ):
+        background_tasks.add_task(
+            send_task_assignment_email,
+            recipient_email=task.assignee.email,
+            recipient_name=task.assignee.name,
+            task_title=task.title,
+            assigner_name=current_user.name,
+        )
+
     return success_response(TaskResponse.model_validate(task).model_dump(mode="json"))
 
 
